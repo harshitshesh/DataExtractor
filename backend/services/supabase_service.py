@@ -104,3 +104,16 @@ def check_duplicate(vendor: str, invoice_number: str) -> Optional[dict]:
     except Exception as e:
         logger.error(f"Error in duplicate check: {e}")
         return None
+def delete_all_invoices() -> bool:
+    """Delete all records from the invoices table."""
+    if not supabase:
+        return False
+    
+    try:
+        # Supabase requires a filter for delete operations.
+        # neq("vendor", "SOMETHING_IMPOSSIBLE") matches everything.
+        res = supabase.table("invoices").delete().neq("vendor", "SOMETHING_IMPOSSIBLE_999").execute()
+        return True
+    except Exception as e:
+        logger.error(f"Error in Supabase DB delete: {e}")
+        return False

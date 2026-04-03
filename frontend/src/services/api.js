@@ -22,6 +22,11 @@ export const getInvoices = async () => {
   return response.data;
 };
 
+export const clearInvoices = async () => {
+  const response = await api.delete('/invoices');
+  return response.data;
+};
+
 export const getAnalytics = async () => {
   const response = await api.get('/analytics');
   return response.data;

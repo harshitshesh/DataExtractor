@@ -1,4 +1,5 @@
 import React from 'react';
+import { getInvoices, clearInvoices } from '../services/api';
 import { 
   LayoutDashboard, 
   BarChart3, 
@@ -6,7 +7,8 @@ import {
   History, 
   Settings, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
@@ -17,16 +19,29 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'history', label: 'History', icon: <History size={18} /> },
   ];
 
+  const handleEndSession = async () => {
+    if (window.confirm("Are you sure you want to end your current session? This will clear all data across all sections.")) {
+      try {
+        await clearInvoices();
+        localStorage.clear();
+        window.location.reload();
+      } catch (err) {
+        console.error("Failed to clear session:", err);
+        alert("Failed to clear session data. Please ensure the backend is running and try again.");
+      }
+    }
+  };
+
   return (
     <aside className="w-64 h-screen border-r border-border-subtle bg-bg-sidebar flex flex-col p-6 sticky top-0">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+        <div className="w-8 h-8 invert rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
           <Sparkles size={18} fill="currentColor" />
         </div>
         <h1 className="heading-display text-xl tracking-tight">Extract<span className="text-primary">.ai</span></h1>
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 ">
         <div className="text-xs-caps mb-4 px-2">Main Menu</div>
         {menuItems.map((item) => (
           <button
@@ -46,6 +61,14 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <Settings size={18} />
           <span>Settings</span>
         </button>
+        <button 
+          onClick={handleEndSession}
+          className="nav-link w-full text-left cursor-pointer mb-6 text-error hover:bg-error-bg hover:text-error transition-colors"
+        >
+          <LogOut size={18} />
+          <span>End Session</span>
+        </button>
+
         <div className="px-4 py-3 rounded-xl bg-primary-light flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-white border border-border-subtle flex items-center justify-center text-[10px] font-bold text-primary">
             AD

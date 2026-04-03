@@ -7,7 +7,7 @@ import logging
 from typing import List, Optional
 from services.ocr_service import extract_text
 from services.llm_service import extract_structured_data
-from services.supabase_service import upload_to_storage, insert_invoice, get_invoices, check_duplicate
+from services.supabase_service import upload_to_storage, insert_invoice, get_invoices, check_duplicate, delete_all_invoices
 from models.invoice import InvoiceExtraction, InvoiceRecord
 from dotenv import load_dotenv
 
@@ -126,6 +126,14 @@ async def process_invoice(file: UploadFile = File(...)):
 async def get_all_invoices():
     """Retrieve list of all processed invoices."""
     return get_invoices()
+
+@app.delete("/invoices")
+async def clear_all_invoices():
+    """Clear all processed invoices from database."""
+    success = delete_all_invoices()
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to clear invoices from database.")
+    return {"status": "success", "message": "All invoices cleared."}
 
 @app.get("/analytics")
 async def get_analytics():

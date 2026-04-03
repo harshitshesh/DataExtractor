@@ -167,3 +167,46 @@ body {
 .btn-ai-gen:active {
   transform: translateY(0);
 }
+
+/* Google style Gradient Border Animation (Reliable Cross Browser) */
+@keyframes google-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.google-border-animated {
+  position: relative;
+  z-index: 1;
+  border: none !important; /* Remove card-premium border */
+  background: transparent !important; /* Allow the ::after to act as the background */
+  overflow: hidden !important; /* CRITICAL: Prevent the 200% rotating gradient from bleeding across the entire page */
+}
+
+/* The spinning gradient background */
+.google-border-animated::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    #ea4335, /* Red */
+    #4285f4, /* Blue */
+    #34a853, /* Green */
+    #fbbc05, /* Yellow */
+    #ea4335  /* Red */
+  );
+  animation: google-spin 4s linear infinite;
+  z-index: -2;
+}
+
+/* The inner card background to hide the center of the gradient */
+.google-border-animated::after {
+  content: "";
+  position: absolute;
+  inset: 2px; /* Border thickness */
+  background: var(--bg-card); /* Should match card-premium bg */
+  border-radius: calc(1rem - 2px); /* Matches card-premium 1rem radius */
+  z-index: -1;
+}
