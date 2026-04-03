@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import time
 from typing import Optional
 from dotenv import load_dotenv
 from google import genai
@@ -17,6 +18,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 client = None
 if api_key:
     client = genai.Client(api_key=api_key)
+    logger.info("Gemini client initialized successfully.")
 else:
     logger.error("GEMINI_API_KEY not found in environment variables.")
 
@@ -39,19 +41,20 @@ def extract_structured_data(ocr_text: str) -> dict:
         return {}
 
     if not client:
-        logger.error("Google GenAI client is not initialized.")
+        logger.error("Google GenAI client is not initialized. Check GEMINI_API_KEY.")
         return {}
 
-    # Confirmed models for invoice extraction
+    # Updated model list — only currently available models (April 2026)
     models_to_try = [
-        "gemini-2.5-flash",
         "gemini-2.0-flash",
-        "gemini-1.5-flash"
+        "gemini-2.0-flash-lite",
+        "gemini-2.5-flash",
     ]
 
     prompt = f"""
     You are an expert invoice data extractor. Extract the following structured data from the provided invoice text.
     Carefully identify the Vendor, Date, Invoice Number, Total Amount, Currency, and Tax details.
+    If a field is not clearly present, use reasonable defaults or null.
     
     OCR TEXT:
     ---
@@ -60,9 +63,11 @@ def extract_structured_data(ocr_text: str) -> dict:
     """
 
     last_err = None
-    for model_name in models_to_try:
+    errors_summary = []
+
+    for i, model_name in enumerate(models_to_try):
         try:
-            logger.info(f"Attempting extraction with model: {model_name}")
+            logger.info(f"Attempting extraction with model: {model_name} (attempt {i+1}/{len(models_to_try)})")
             
             response = client.models.generate_content(
                 model=model_name,
@@ -81,8 +86,17 @@ def extract_structured_data(ocr_text: str) -> dict:
             
         except Exception as e:
             last_err = e
-            logger.error(f"Model {model_name} failed: {str(e)}")
+            error_msg = str(e)
+            errors_summary.append(f"{model_name}: {error_msg[:100]}")
+            logger.error(f"Model {model_name} failed: {error_msg}")
+            
+            # If rate limited, wait a bit before trying next model
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                logger.info("Rate limited, waiting 5 seconds before next attempt...")
+                time.sleep(5)
+            
             continue
 
-    logger.critical(f"All Gemini models failed for data extraction. Last error: {last_err}")
+    all_errors = " | ".join(errors_summary)
+    logger.critical(f"All Gemini models failed. Errors: {all_errors}")
     return {}
