@@ -2,6 +2,7 @@
 
 Welcome! This system is designed to automatically extract data from invoices (PDFs and Images) using **Tesseract OCR** and **Gemini AI**, then store the results in **Supabase**.
 
+Live link -- https://glittering-khapse-98894c.netlify.app/
 ## 🛠️ Prerequisites
 1.  **Docker Desktop**: Running on your machine.
 2.  **Node.js**: Installed for running the frontend.
