@@ -1,11 +1,30 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000'; // Docker backend
+// Use the environment variable, with a fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+console.log('[API] Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 120000, // 2 min timeout for large invoice processing
+  headers: {
+    'Accept': 'application/json',
+  },
 });
+
+// Response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ERR_NETWORK') {
+      console.error('[API] Network error — backend may be unreachable at:', API_BASE_URL);
+    } else if (error.response) {
+      console.error(`[API] Server error ${error.response.status}:`, error.response.data);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const uploadInvoice = async (file) => {
   const formData = new FormData();
